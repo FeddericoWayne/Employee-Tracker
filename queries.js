@@ -133,7 +133,7 @@ function viewErrMultiple() {
 function viewDepartments() {
 
     // query to display all departments
-    db.query('SELECT department.id AS department_id, department.name AS department_name FROM department',(err,results)=>{
+    db.query('SELECT department.id AS department_id, department.name AS department_name FROM department ORDER BY department_id',(err,results)=>{
 
         // catches and displays error
         if (err) {
@@ -159,7 +159,7 @@ function viewDepartments() {
 function viewRoles() {
 
     // query to display all departments
-    db.query('SELECT role.id AS job_id, role.title AS job_title, role.salary, department.name AS department FROM role JOIN department ON role.department_id = department.id ORDER BY role.id;',(err,results)=>{
+    db.query('SELECT role.id AS job_id, role.title AS job_title, department.name AS department, role.salary FROM role JOIN department ON role.department_id = department.id ORDER BY department, job_id;',(err,results)=>{
         
         // catches and displays error
         if (err) {
@@ -187,7 +187,7 @@ function viewRoles() {
 function viewEmployees() {
 
     // query to format and display all employees
-    db.query('SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id;',(err,results)=>{
+    db.query('SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id ORDER BY id;',(err,results)=>{
         
         // catches and displays error
         if (err) {
@@ -762,7 +762,7 @@ function viewTotalBudget() {
 
     
     // mysql query to display sum of each department
-    db.query("SELECT department.name AS department, COALESCE(SUM(role.salary),0) AS total_utilized_budget FROM department LEFT JOIN role ON department.id = role.department_id LEFT JOIN employee ON role.id = employee.role_id GROUP BY department ORDER BY department;",(err,results)=> {
+    db.query("SELECT department.name AS department, COALESCE(SUM(s.salary),0) AS total_utilized_budget FROM role r LEFT JOIN department ON r.department_id = department.id LEFT JOIN employee ON r.id = employee.role_id LEFT JOIN role s ON employee.role_id = s.id GROUP BY department ORDER BY total_utilized_budget DESC, department;",(err,results)=> {
         
         // catches and displays error and takes user back to main menu
         if (err) {
@@ -782,8 +782,11 @@ function viewTotalBudget() {
 
 };
 
-
 // TODO: elimiate duplicate entries for role and department
+
+// TODO: fix bug on getCurrentRoles, getCurrentEmployees, getCurrentDepartments
+
+
 
 
 // exports query functions
