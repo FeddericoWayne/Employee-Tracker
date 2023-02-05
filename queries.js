@@ -129,6 +129,14 @@ function viewErrMultiple() {
     next();
 }
 
+// function to alert user that data entered already exists in database
+function viewDuplicateErr() {
+    // alert
+    console.log("\nData entered already exists!\n");
+    // takes user back to main menu
+    next();
+}
+
 // function to display all departments
 function viewDepartments() {
 
@@ -218,21 +226,33 @@ function addDepartment() {
     .then((data) => {
         // makes mysql query with new department name
         const newDepartmentName= data.name.toLowerCase();
-        db.query(`INSERT INTO department (name) VALUES ("${newDepartmentName}")`,(err,results)=>{
 
-            // catches and displays error
-            if (err) {
-                console.log(err);
-                // takes user back to main menu
-                next();
+        // mysql query to retrieve existing departments to eliminate duplicate entries
+        db.query("SELECT department.name FROM department",(err,results)=>{
+
+            const resultString = JSON.stringify(results)
+            if (resultString.includes(newDepartmentName)) {
+                // function to alert user that data already exists
+                viewDuplicateErr();
+                return;
             };
 
-            if (!err) {
-                // alerts user the new department has been added
-                console.log("\nNew Department Added!\n");
-                // takes user back to main menu
-                next();
-            }
+            db.query(`INSERT INTO department (name) VALUES ("${newDepartmentName}")`,(err,results)=>{
+
+                // catches and displays error
+                if (err) {
+                    console.log(err);
+                    // takes user back to main menu
+                    next();
+                };
+    
+                if (!err) {
+                    // alerts user the new department has been added
+                    console.log("\nNew Department Added!\n");
+                    // takes user back to main menu
+                    next();
+                }
+            });
         });
 
     });
@@ -257,36 +277,58 @@ function addRole() {
         // makes mysql query with new role name
         const newRoleName = data.title.toLowerCase();
         const newRoleSalary = data.salary;
-        
-        db.query(`SELECT id FROM department WHERE name = "${data.department}"`,(err,results)=>{
+        const newRoleDepartment = data.department[0].toLowerCase();
 
-            // catches and displays error and takes use back to main menu
-            if (err) {
-                console.log(err);
-                next();
+        // mysql query to retrieve existing roles in each department
+        db.query("SELECT role.title AS role, department.name AS department FROM role JOIN department ON role.department_id = department.id;",(err,results)=>{
+            
+            // eliminates duplicate entries
+            for (result of results) {
+
+                // loops through results for matching roles in each department
+                if (newRoleName === result.role && newRoleDepartment === result.department) {
+
+                    // if matched for both role and department
+                    viewDuplicateErr();
+                    return;
+                };
+
             };
 
-            if (!err) {
-                // assigns department id number to variable for query
-                const departmentId = results[0].id
-                // mysql query to insert new role
-                db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRoleName}",${newRoleSalary},"${departmentId}")`);
+            db.query(`SELECT id FROM department WHERE name = "${data.department}"`,(err,results)=>{
 
-                    // catches and displays error and takes user back to main menu
-                    if (err) {
-                        console.log(err);
-                        next();
-                    };
-
-                    if (!err) {
-                    // alerts user the new role has been added
-                    console.log("\nNew Role Added!\n");
-                    // takes user back to main menu
+                // catches and displays error and takes use back to main menu
+                if (err) {
+                    console.log(err);
                     next();
-                    };
-            };
+                };
+    
+                if (!err) {
+                    // assigns department id number to variable for query
+                    const departmentId = results[0].id
+                    // mysql query to insert new role
+                    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRoleName}",${newRoleSalary},"${departmentId}")`);
+    
+                        // catches and displays error and takes user back to main menu
+                        if (err) {
+                            console.log(err);
+                            next();
+                        };
+    
+                        if (!err) {
+                        // alerts user the new role has been added
+                        console.log("\nNew Role Added!\n");
+                        // takes user back to main menu
+                        next();
+                        };
+                };
+    
+            });
+
 
         })
+        
+
         
     })
 
@@ -780,9 +822,7 @@ function viewTotalBudget() {
         };
     })
 
-};
-
-// TODO: elimiate duplicate entries for role and department
+}; 
 
 // TODO: fix bug on getCurrentRoles, getCurrentEmployees, getCurrentDepartments
 
