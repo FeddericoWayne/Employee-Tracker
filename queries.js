@@ -177,7 +177,6 @@ function viewRoles() {
         };
 
         if (!err) {
-            console.log(err);
             // header for role table
             console.log("\nViewing All Roles:\n");
             // displays roles

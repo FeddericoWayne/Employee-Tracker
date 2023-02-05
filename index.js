@@ -1,14 +1,20 @@
 // imports inquirer package
 const inquirer = require('inquirer');
+const { title } = require('process');
 // imports questions for inquirer prompts
 const questions = require('./inquirer-prompt/questions');
 // imports mysql query functions
 const queries = require('./queries');
+// imports banner module
+const banner = require('./util/ascii-signature');''
 
 
 
 // makes inquirer start prompt sequence
 function startApp() {
+
+    // displays app banner
+    banner();
 
     inquirer.prompt(questions.menu)
     .then((data) => {
