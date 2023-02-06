@@ -145,14 +145,6 @@ function viewNullErr() {
     next();
 }
 
-// function to bring user back to main menu if they selects "Abort" at any point
-function abortProcess() {
-    // alert
-    console.log("\nProcess Aborted\n");
-    // takes user back to main menu
-    next();
-}
-
 // function to display all departments
 function viewDepartments() {
 
