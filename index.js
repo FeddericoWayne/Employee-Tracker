@@ -1,6 +1,5 @@
 // imports inquirer package
 const inquirer = require('inquirer');
-const { title } = require('process');
 // imports questions for inquirer prompts
 const questions = require('./inquirer-prompt/questions');
 // imports mysql query functions
