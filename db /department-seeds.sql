@@ -3,9 +3,9 @@ USE company_db;
 
 INSERT INTO department (name)
     VALUES
-        ("Marketing"),
-        ("Sales"),
-        ("Accounting"),
-        ("Production"),
-        ("HR"),
-        ("Design");
+        ("marketing"),
+        ("sales"),
+        ("accouting"),
+        ("production"),
+        ("hr"),
+        ("design");

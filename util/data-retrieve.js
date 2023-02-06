@@ -1,5 +1,6 @@
 // TODO: write codes to retrieve current department, role, and employee data and export
 const mysql = require('mysql2');
+// establishes connection to database
 const db = mysql.createConnection(
     {
         host: "localhost",
@@ -12,12 +13,10 @@ const db = mysql.createConnection(
 // function to retrieve current roles from database
 function getCurrentRoles() {
 
-    let roleArray = [];
+    const roleArray = [];
 
     // makes a mysql query to the database for all current role titles
     db.query('SELECT role.title FROM role',(err,results)=> {
-
-
 
         // loops over results and pushes each title into array
         for (result of results) {
@@ -26,7 +25,6 @@ function getCurrentRoles() {
             roleArray.push(roleTitle);
  
         };
-
 
     })
     // outputs finished array
