@@ -1,4 +1,4 @@
-// TODO: write codes to retrieve current department, role, and employee data and export
+// imports mysql2
 const mysql = require('mysql2');
 // establishes connection to database
 const db = mysql.createConnection(
