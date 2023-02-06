@@ -25,7 +25,7 @@
   14. Update an employee's role
   15. Update an employee's manager 
   ```
-  If at any point the user selects more than one option or enters a non-number for a new role's salary by mistake, they will be alerted accordingly and taken back to the main menu to start over. Upon success completion of a task, the App takes the users back to the main menu so they can select what they'd like to do next. Finally, there is an "Exit" option if they wish to quit the App.
+  If at any point the user selects more than one option, skips entering necessary info (with the exception of updating an employee's manager to NULL), or enters a non-number for a new role's salary by mistake, they will be alerted accordingly and taken back to the main menu to start over. Upon success completion of a task, the App takes the users back to the main menu so they can select what they'd like to do next. Finally, there is an "Exit" option if they wish to quit the App.
 
   Click <a href="" target="_blank">HERE</a> for the video that demonstrates the functionality of this App. 
   (URL: )

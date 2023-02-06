@@ -7,8 +7,9 @@ const db = mysql.createConnection(
         user: "root",
         password: "FeddericoWayne",
         database: "company_db"
-    }
+    } 
 );
+
 
 // function to retrieve current roles from database
 function getCurrentRoles() {
@@ -18,6 +19,7 @@ function getCurrentRoles() {
     // makes a mysql query to the database for all current role titles
     db.query('SELECT role.title FROM role',(err,results)=> {
 
+
         // loops over results and pushes each title into array
         for (result of results) {
 
@@ -26,11 +28,14 @@ function getCurrentRoles() {
  
         };
 
+
     })
     // outputs finished array
     return roleArray;
     
 };
+
+
 
 // function to retrieve current employees from database
 function getCurrentEmployees() {
@@ -45,9 +50,10 @@ function getCurrentEmployees() {
             let fullName = `${result.first_name} ${result.last_name}`;
 
             employeeArray.push(fullName);
+            
+
         }
 
-        
     })
 
     // outputs finished array
@@ -96,6 +102,8 @@ function getFullName() {
     })
     return nameArray;
 };
+
+
 
 
 module.exports = {

@@ -137,6 +137,22 @@ function viewDuplicateErr() {
     next();
 }
 
+// function to alert user that data is needed
+function viewNullErr() {
+    // alert
+    console.log("\nPlease enter necessary info to proceed!\n");
+    // takes user back to main menu
+    next();
+}
+
+// function to bring user back to main menu if they selects "Abort" at any point
+function abortProcess() {
+    // alert
+    console.log("\nProcess Aborted\n");
+    // takes user back to main menu
+    next();
+}
+
 // function to display all departments
 function viewDepartments() {
 
@@ -226,6 +242,12 @@ function addDepartment() {
         // makes mysql query with new department name
         const newDepartmentName= data.name.toLowerCase();
 
+        // if user did not enter any department
+        if (data.name.trim() === "") {
+            viewNullErr(); 
+            return;
+        };
+
         // mysql query to retrieve existing departments to eliminate duplicate entries
         db.query("SELECT department.name FROM department",(err,results)=>{
 
@@ -273,11 +295,18 @@ function addRole() {
             return;
         };
 
+
         // if user selects more than one department for the new role
         if (data.department.length === 0 || data.department.length >1) {
             viewErrMultiple();
             return;
-        }
+        };
+
+        // if user enters nothing for new role name
+        if (data.title.trim() === "" || data.salary.trim() === "") {
+            viewNullErr();
+            return;
+        };
 
         // makes mysql query with new role name
         const newRoleName = data.title.toLowerCase();
@@ -346,6 +375,12 @@ function addEmployee() {
     inquirer
     .prompt(questions.newEmployee)
     .then((data)=>{
+
+        // if user enters nothing for first or last name
+        if (data.first.trim()==="" || data.last.trim()==="") {
+            viewNullErr();
+            return;
+        };
 
         // assigns new employee's first and last name to variables
         const newEmployeeFName = data.first.toUpperCase().replaceAll(" ","");
@@ -613,8 +648,34 @@ function updateManager() {
     .then((data)=>{
 
         // if user selects more than one employee or manager
-        if (data.name.length !== 1 || data.manager.length !== 1) {
+        if (data.name.length !== 1 || data.manager.length >1) {
             viewErrMultiple();
+            return;
+        };
+
+        if (data.manager.length === 0) {
+
+            const emFName = data.name[0].split(" ")[0];
+            const emLName = data.name[0].split(" ")[1];
+
+            // mysql query to update employee manager
+            db.query(`UPDATE employee SET manager_id = NULL WHERE first_name = "${emFName}" AND last_name = "${emLName}"`,(err,results)=>{
+
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
+
+                if (!err) {
+                    // alerts user employee manager has been updated
+                    console.log("\n Employee Manager Updated!\n");
+                    // takes user back to main menu
+                    next();
+                    
+                };
+            })
+
             return;
         };
 
@@ -863,6 +924,8 @@ function viewTotalBudget() {
     })
 
 }; 
+
+
 
 // TODO: fix bug on getCurrentRoles, getCurrentEmployees, getCurrentDepartments
 

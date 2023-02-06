@@ -124,7 +124,7 @@ const uDManager = [
     {
         type: "checkbox",
         name: "manager",
-        message: "Please assign the selected employee with the new manager:",
+        message: "Please assign the selected employee with the new manager. To set manager as none, press enter:",
         choices: data.getCurrentEmployees()
     }
 ];
