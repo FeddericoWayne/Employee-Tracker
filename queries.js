@@ -124,7 +124,7 @@ function next() {
 // function to alert user that more than one option was selected
 function viewErrMultiple() {
     // alert
-    console.log("\nPlease select only one option to proceed!\n");
+    console.log("\nPlease select one option to proceed!\n");
     // takes user back to main menu
     next();
 }
@@ -194,7 +194,7 @@ function viewRoles() {
 function viewEmployees() {
 
     // query to format and display all employees
-    db.query('SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id ORDER BY id;',(err,results)=>{
+    db.query("SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id ORDER BY id;",(err,results)=>{
         
         // catches and displays error
         if (err) {
@@ -273,6 +273,12 @@ function addRole() {
             return;
         };
 
+        // if user selects more than one department for the new role
+        if (data.department.length === 0 || data.department.length >1) {
+            viewErrMultiple();
+            return;
+        }
+
         // makes mysql query with new role name
         const newRoleName = data.title.toLowerCase();
         const newRoleSalary = data.salary;
@@ -345,6 +351,11 @@ function addEmployee() {
         const newEmployeeFName = data.first.toUpperCase().replaceAll(" ","");
         const newEmployeeLName = data.last.toUpperCase().replaceAll(" ","");
 
+        if (data.role.length === 0 || data.role.length > 1) {
+            viewErrMultiple();
+            return;
+        };
+
         // mysql query to retrieve role id
         db.query(`SELECT id FROM role WHERE title = "${data.role}"`,(err,results)=>{
 
@@ -354,7 +365,13 @@ function addEmployee() {
                 next();
             };
 
-            if (!err) {
+            if (!err && data.manager.length > 1) {
+                viewErrMultiple();
+                return;
+            };
+
+            if (!err && data.manager.length !==0) {
+
                 // retrieves role id from inquirer data
                 const newEmployeeRoleId = results[0].id;
 
@@ -390,6 +407,30 @@ function addEmployee() {
 
                 });
             };
+
+            // if no manager is selected
+            if (!err && data.manager.length === 0) {
+
+                // retrieves role id from inquirer data
+                const newEmployeeRoleId = results[0].id;
+
+                // mysql query to add new employee
+                db.query(`INSERT INTO employee (first_name,last_name,role_id) VALUES ("${newEmployeeFName}","${newEmployeeLName}",${newEmployeeRoleId});`,(err,results)=>{
+                            
+                    // catches and displays error and takes user back to main menu
+                    if (err) {
+                        console.log(err);
+                        next();
+                    };
+
+                    if (!err) {
+                        // alerts user the new employee has been added
+                        console.log("\nNew Employee Added!\n");
+                        // takes user back to main menu
+                        next();
+                    };
+                })
+            }
         });
 
     })
@@ -774,7 +815,7 @@ function viewEmployeesByDepartment() {
                         const roleIdParams = roleId.toString().replaceAll("[","").replaceAll("]","");
 
                         // mysql query to display employees in selected department
-                        db.query(`SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id WHERE e.role_id IN (${roleIdParams}) ORDER BY e.id`,(err,results)=>{
+                        db.query(`SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id WHERE e.role_id IN (${roleIdParams}) ORDER BY e.id`,(err,results)=>{
                             
                             // catches and displays error and takes user back to main menu
                             if (err) {
@@ -824,8 +865,6 @@ function viewTotalBudget() {
 }; 
 
 // TODO: fix bug on getCurrentRoles, getCurrentEmployees, getCurrentDepartments
-
-
 
 
 // exports query functions

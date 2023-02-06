@@ -1,4 +1,7 @@
-// imports mysql2
+const data = require("../util/data-retrieve");
+
+
+/*// imports mysql2
 const mysql = require('mysql2');
 
 // creates connection to database
@@ -102,7 +105,7 @@ function getFullName() {
         }
     })
     return nameArray;
-};
+};*/
 
 
 
@@ -141,7 +144,7 @@ const newRole = [
         type: "checkbox",
         name: "department",
         message: "Please select the department of the new role:",
-        choices: getCurrentDepartments()
+        choices: data.getCurrentDepartments()
     }
 
 ];
@@ -162,13 +165,13 @@ const newEmployee = [
         type: "checkbox",
         name: "role",
         message: "Please select the new employee's job title:",
-        choices: getCurrentRoles()
+        choices: data.getCurrentRoles()
     },
     {
         type: "checkbox",
         name: "manager",
         message: "Please select the new employe's manager. If none, press enter to proceed:",
-        choices: getCurrentEmployees()
+        choices: data.getCurrentEmployees()
     }
 ];
 
@@ -178,7 +181,7 @@ const delDepartment = [
         type: "checkbox",
         name: "name",
         message: "Please select which department you'd like to delete:",
-        choices: getCurrentDepartments()
+        choices: data.getCurrentDepartments()
     }
 ];
 
@@ -188,7 +191,7 @@ const delRole =[
         type: "checkbox",
         name: "title",
         message: "Please select which role you'd like to delete:",
-        choices: getCurrentRoles()
+        choices: data.getCurrentRoles()
     }
 ];
 
@@ -198,7 +201,7 @@ const delEmployee = [
         type: "checkbox",
         name: "name",
         message: "Please select which employee you'd like to delete:",
-        choices: getFullName()
+        choices: data.getFullName()
     }
 ]
 
@@ -208,13 +211,13 @@ const uDRole = [
         type: "checkbox",
         name: "name",
         message: "Please select the employee for whom you'd like to update role:",
-        choices: getCurrentEmployees()
+        choices: data.getCurrentEmployees()
     },
     {
         type: "checkbox",
         name: "role",
         message: "Please select new role for the selected employee:",
-        choices: getCurrentRoles()
+        choices: data.getCurrentRoles()
     }
 ];
 
@@ -224,13 +227,13 @@ const uDManager = [
         type: "checkbox",
         name: "name",
         message: "Please select the employee whose manager you'd like to update:",
-        choices: getCurrentEmployees()
+        choices: data.getCurrentEmployees()
     },
     {
         type: "checkbox",
         name: "manager",
         message: "Please assign the selected employee with the new manager:",
-        choices: getCurrentEmployees()
+        choices: data.getCurrentEmployees()
     }
 ];
 
@@ -240,7 +243,7 @@ const viewByManager = [
         type: "checkbox",
         name: "manager",
         message: "Please select the manager whose subordinate employees you'd like to view:",
-        choices: getCurrentEmployees()
+        choices: data.getCurrentEmployees()
     }
 ];
 
@@ -250,7 +253,7 @@ const rolesByDepartment = [
         type: "checkbox",
         name: "department",
         message: "Please select the department whose roles you'd like to view:",
-        choices: getCurrentDepartments()
+        choices: data.getCurrentDepartments()
     }
 ];
 
@@ -260,7 +263,7 @@ const employeesByDepartment = [
         type: "checkbox",
         name: "department",
         message: "Please select the department whose employees you'd like to view:",
-        choices: getCurrentDepartments()
+        choices: data.getCurrentDepartments()
     }
 ];
 
