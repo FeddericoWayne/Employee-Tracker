@@ -1,9 +1,9 @@
 // imports inquirer package
 const inquirer = require('inquirer');
 // imports questions for inquirer prompts
-const questions = require('./inquirer-prompt/questions');
+const questions = require('./util/inquirer-prompt/questions');
 // imports mysql query functions
-const queries = require('./queries');
+const queries = require('./util/queries');
 // imports banner module
 const banner = require('./util/ascii-signature');''
 

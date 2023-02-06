@@ -36,7 +36,6 @@ function getCurrentRoles() {
 };
 
 
-
 // function to retrieve current employees from database
 function getCurrentEmployees() {
 
@@ -66,10 +65,11 @@ function getCurrentEmployees() {
 // function to retrieve current departments from database
 function getCurrentDepartments() {
 
-    let departmentArray = [];
+    const departmentArray = [];
 
     // makes a mysql query to the database for current roles
     db.query("SELECT name FROM department",(err,results)=>{
+
 
         // loops over results and pushes each title to array
         for (result of results) {
@@ -88,7 +88,7 @@ function getCurrentDepartments() {
 // function to retrieve employee full name
 function getFullName() {
 
-    let nameArray = [];
+    const nameArray = [];
 
     // makes a mysql query to retrieve first and last names of current employees
     db.query("SELECT first_name, last_name FROM employee", (err,results)=>{

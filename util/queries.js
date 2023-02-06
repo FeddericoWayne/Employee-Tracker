@@ -5,7 +5,7 @@ const ctable = require('console.table');
 //imports inquirer for prompts
 const inquirer= require('inquirer');
 // imports questions for inquirer
-const questions = require('./inquirer-prompt/questions');
+const questions = require('../util/inquirer-prompt/questions');
 
 
 

@@ -1,4 +1,4 @@
-const data = require("../util/data-retrieve");
+const data = require("../data-retrieve");
 
 
 // inquirer question array for main menu
@@ -159,7 +159,7 @@ const employeesByDepartment = [
     }
 ];
 
-
+console.log(data.getCurrentRoles());
 
 // exports inquirer prompts
 module.exports = {
