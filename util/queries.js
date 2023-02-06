@@ -143,6 +143,14 @@ function viewNullErr() {
     console.log("\nPlease enter necessary info to proceed!\n");
     // takes user back to main menu
     next();
+};
+
+// function to alert user that data does not exist
+function viewEmptyErr() {
+    // alert
+    console.log("\nData not found!\n");
+    // takes user back to main menu
+    next();
 }
 
 // function to display all departments
@@ -465,114 +473,192 @@ function addEmployee() {
 
 // function to delete a department
 function deleteDepartment() {
-    
-    // makes inquirer ask which department to delete
-    inquirer
-    .prompt(questions.delDepartment)
-    .then((data)=>{
 
-        // if user selects more than one department
-        if (data.name.length !== 1) {
-            viewErrMultiple();
-            return;
+
+    const departmentArray = [];
+
+    // makes a mysql query to the database for current departments
+    db.query("SELECT name FROM department",(err,results)=>{
+
+
+        // loops over results and pushes each title to array
+        for (result of results) {
+            
+            // loops over results and pushes department names into array
+            let departmentName = result.name;
+            departmentArray.push(departmentName);
+
         };
 
-        // assigns name of the department to be deleted to a variable
-        const deletedDepartment = data.name[0];
+        // makes inquirer ask which department to delete
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "name",
+                message: "Please select which department you'd like to delete:",
+                choices: departmentArray
+            }
+        ])
+        .then((data)=>{
 
-        // mysql query to delete selcted department
-        db.query(`DELETE FROM department WHERE name = "${deletedDepartment}"`,(err,results)=>{
-
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+            // if user selects more than one department
+            if (data.name.length !== 1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // alerts user the department has been deleted
-                console.log("\nDepartment Deleted!\n");
-                // takes user back to main menu
-                next();
-            };
+            // assigns name of the department to be deleted to a variable
+            const deletedDepartment = data.name[0];
+
+            // mysql query to delete selcted department
+            db.query(`DELETE FROM department WHERE name = "${deletedDepartment}"`,(err,results)=>{
+
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
+
+                if (!err) {
+                    // alerts user the department has been deleted
+                    console.log("\nDepartment Deleted!\n");
+                    // takes user back to main menu
+                    next();
+                };
+            })
+
         })
 
+
     })
+
+    
+
+    
+
 };
+
 
 // function to delete a role
 function deleteRole() {
 
-    // makes inquirer ask which role to delete
-    inquirer
-    .prompt(questions.delRole)
-    .then((data)=>{
+    const roleArray = [];
 
-        // if user selects more than one role 
-        if (data.title.length !== 1) {
-            viewErrMultiple();
-            return;
+    // makes a mysql query to the database for all current role titles
+    db.query('SELECT role.title FROM role',(err,results)=> {
+
+
+        // loops over results and pushes each title into array
+        for (result of results) {
+
+            let roleTitle = result.title;
+            roleArray.push(roleTitle);
+ 
         };
 
-        // assigns the role to be deleted to a variable
-        const deletedRole = data.title[0];
-        // mysql query to delete role
-        db.query(`DELETE FROM role WHERE title = "${deletedRole}"`,(err,results)=>{
+        // makes inquirer ask which role to delete
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "title",
+                message: "Please select which role you'd like to delete:",
+                choices: roleArray
+            }
+        ])
+        .then((data)=>{
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+            // if user selects more than one role 
+            if (data.title.length !== 1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // alerts user the role has been deleted
-                console.log("\nRole Deleted!\n");
-                // takes user back to main menu
-                next();
-            };
-        });
+            // assigns the role to be deleted to a variable
+            const deletedRole = data.title[0];
+            // mysql query to delete role
+            db.query(`DELETE FROM role WHERE title = "${deletedRole}"`,(err,results)=>{
 
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
+
+                if (!err) {
+                    // alerts user the role has been deleted
+                    console.log("\nRole Deleted!\n");
+                    // takes user back to main menu
+                    next();
+                };
+            });
+
+        })
     })
+
+    
 };
 
 // function to delete an employee
 function deleteEmployee() {
     
-    // makes inquirer ask which employee to delete
-    inquirer
-    .prompt(questions.delEmployee)
-    .then((data)=>{
+    const employeeArray = [];
+    
+    // makes a mysql query to the database for current employees' names
+    db.query("SELECT employee.first_name, employee.last_name FROM employee",(err,results)=>{
 
-        // if user selects more than one employee
-        if (data.name.length !==1) {
-            viewErrMultiple();
-            return;
-        };
+        // loops over results and pushes each employee full name into array
+        for (result of results) {
+            let fullName = `${result.first_name} ${result.last_name}`;
 
-        // using methods to get first and last name of employee to be deleted
-        const fullName = data.name[0];
-        const fName = fullName.split(" ")[0];
-        const lName = fullName.split(" ")[1];
+            employeeArray.push(fullName);
+            
 
-        // mysql query to delete employee
-        db.query(`DELETE FROM employee WHERE first_name = "${fName}" AND last_name = "${lName}";`, (err,results)=>{
+        }
+        // makes inquirer ask which employee to delete
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "name",
+                message: "Please select which employee you'd like to delete:",
+                choices: employeeArray
+            }
+        ])
+        .then((data)=>{
 
-            // catches and display error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+            // if user selects more than one employee
+            if (data.name.length !==1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // alerts user the employee has been deleted
-                console.log("\nEmployee Deleted!\n")
-                // takes user back to main menu
-                next();
-            };
+            // using methods to get first and last name of employee to be deleted
+            const fullName = data.name[0];
+            const fName = fullName.split(" ")[0];
+            const lName = fullName.split(" ")[1];
+
+            // mysql query to delete employee
+            db.query(`DELETE FROM employee WHERE first_name = "${fName}" AND last_name = "${lName}";`, (err,results)=>{
+
+                // catches and display error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
+
+                if (!err) {
+                    // alerts user the employee has been deleted
+                    console.log("\nEmployee Deleted!\n")
+                    // takes user back to main menu
+                    next();
+                };
+            })
+
         })
-
-    })
+    });
+    
 };
 
 // function to update an employee role
@@ -821,75 +907,106 @@ function viewRolesByDepartment() {
 // function to display employees by department
 function viewEmployeesByDepartment() {
 
-    // makes inquirer ask which department the user wants to view employees of
-    inquirer
-    .prompt(questions.employeesByDepartment)
-    .then((data)=>{
-        
-        // if user selects more than one department
-        if (data.department.length !== 1) {
-            viewErrMultiple();
-            return;
-        };
+    const departmentArray = [];
 
-        // assigns selected department to variable
-        const selectedDepartment = data.department[0];
-        // mysql query to locate department id
-        db.query(`SELECT id FROM department WHERE name = "${selectedDepartment}"`,(err,results)=>{
+    // makes a mysql query to the database for current roles
+    db.query("SELECT name FROM department",(err,results)=>{
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+
+        // loops over results and pushes each title to array
+        for (result of results) {
+            
+            // loops over results and pushes department names into array
+            let departmentName = result.name;
+            departmentArray.push(departmentName);
+
+        }
+
+        // makes inquirer ask which department the user wants to view employees of
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "department",
+                message: "Please select the department whose employees you'd like to view:",
+                choices: departmentArray
+            }
+        ])
+        .then((data)=>{
+            
+            // if user selects more than one department
+            if (data.department.length !== 1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // assigns department id to variable
-                const depId = results[0].id;
-                // mysql query to locate role_ids of selected department
-                db.query(`SELECT id FROM role WHERE department_id = ${depId}`,(err,results)=>{
-                    
-                    // catches and displays error and takes user back to main menu
-                    if (err) {
-                        console.log(err);
-                        next();
-                    };
+            // assigns selected department to variable
+            const selectedDepartment = data.department[0];
+            // mysql query to locate department id
+            db.query(`SELECT id FROM department WHERE name = "${selectedDepartment}"`,(err,results)=>{
 
-                    if (!err) {
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
 
-                        const roleId = [];
-                        // loops through results and pushes each role id to array
-                        for (result of results) {
-                            const currentRoleId = result.id;
-                            roleId.push(currentRoleId);
-                        }
+                if (!err) {
+                    // assigns department id to variable
+                    const depId = results[0].id;
+                    // mysql query to locate role_ids of selected department
+                    db.query(`SELECT id FROM role WHERE department_id = ${depId}`,(err,results)=>{
+
+                        if (results.length === 0) {
+                            viewEmptyErr();
+                            return;
+                        };
                         
-                        // forms parameter for mysql query
-                        const roleIdParams = roleId.toString().replaceAll("[","").replaceAll("]","");
+                        // catches and displays error and takes user back to main menu
+                        if (err) {
+                            console.log(err);
+                            next();
+                        };
 
-                        // mysql query to display employees in selected department
-                        db.query(`SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id WHERE e.role_id IN (${roleIdParams}) ORDER BY e.id`,(err,results)=>{
+                        if (!err) {
+
+                            const roleId = [];
+                            // loops through results and pushes each role id to array
+                            for (result of results) {
+                                const currentRoleId = result.id;
+                                roleId.push(currentRoleId);
+                            }
                             
-                            // catches and displays error and takes user back to main menu
-                            if (err) {
-                                console.log(err);
-                                next();
-                            };
+                            // forms parameter for mysql query
+                            const roleIdParams = roleId.toString().replaceAll("[","").replaceAll("]","");
 
-                            if (!err) {
-                                // table header
-                                console.log(`\nViewing All Employees from the ${selectedDepartment} Department:\n`)
-                                // displays resulting table
-                                console.table(results)
-                                // takes user back to main menu
-                                next();
-                            };
-                        })
-                    };
-                })
-            };
+                            // mysql query to display employees in selected department
+                            db.query(`SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id WHERE e.role_id IN (${roleIdParams}) ORDER BY e.id`,(err,results)=>{
+                                
+                                // catches and displays error and takes user back to main menu
+                                if (err) {
+                                    console.log(err);
+                                    next();
+                                };
+
+                                if (!err) {
+                                    // table header
+                                    console.log(`\nViewing All Employees from the ${selectedDepartment} Department:\n`)
+                                    // displays resulting table
+                                    console.table(results)
+                                    // takes user back to main menu
+                                    next();
+                                };
+                            })
+                        };
+                    })
+                };
+            })
         })
+
     })
+
+    
 };
 
 // function to display total utilized budget by department
@@ -919,7 +1036,15 @@ function viewTotalBudget() {
 
 
 
-// TODO: fix bug on getCurrentRoles, getCurrentEmployees, getCurrentDepartments
+/* TODO: fix missing data bug from:
+addRole (select department list missing data)
+viewEmployeeByManager (select manager list missing data)
+viewEmployeesByDepartment (select department list missing data)
+viewRolesByDepartment (select department list missing data)
+addEmployee (select role list missing data, select manager list missing data)
+updateRole (select employee list missing data, select new role list missing data)
+updateManager (select employee list missing data, select new manager list missing data)
+*/
 
 
 // exports query functions

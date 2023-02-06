@@ -159,7 +159,7 @@ const employeesByDepartment = [
     }
 ];
 
-console.log(data.getCurrentRoles());
+
 
 // exports inquirer prompts
 module.exports = {
