@@ -20,7 +20,7 @@ INSERT INTO role (title,salary,department_id)
         ("creative director",150000,2),
         ("senior designer",110000,2),
         ("junior designer",95000,2),
-        ("pattner maker",75000,2),
+        ("pattern maker",75000,2),
         ("production manager",80000,3),
         ("production assistant",70000,3),
         ("seamstress", 68000,3),
