@@ -1,4 +1,4 @@
-# NOTE TAKER <img src="https://img.shields.io/badge/license-MIT-yellow?style=plastic">
+# EMPLOYEE TRACKER <img src="https://img.shields.io/badge/license-MIT-yellow?style=plastic">
 
   ## <a id="Description">Description</a> 
 
