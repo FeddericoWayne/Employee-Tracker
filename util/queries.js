@@ -210,7 +210,7 @@ function viewRoles() {
 function viewEmployees() {
 
     // query to format and display all employees
-    db.query("SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id ORDER BY id;",(err,results)=>{
+    db.query("SELECT e.id, e.first_name, e.last_name, IFNULL(role.title,'') AS job_title, IFNULL(department.name,'') AS department, IFNULL(role.salary,'') AS salary, IFNULL(m.first_name,'') AS manager_first_name, IFNULL(m.last_name,'') AS manager_last_name FROM employee e LEFT JOIN employee m ON e.manager_id = m.id LEFT JOIN role ON e.role_id = role.id LEFT JOIN department on role.department_id = department.id ORDER BY id;",(err,results)=>{
         
         // catches and displays error
         if (err) {
@@ -406,60 +406,137 @@ function addRole() {
 // function to add an employee
 function addEmployee() {
 
-    // makes inquirer gather info on new employee
-    inquirer
-    .prompt(questions.newEmployee)
-    .then((data)=>{
+    const roleArray = [];
 
-        // if user enters nothing for first or last name
-        if (data.first.trim()==="" || data.last.trim()==="") {
-            viewNullErr();
-            return;
+    const employeeArray =[];
+
+    // makes a mysql query to the database for all current role titles
+    db.query('SELECT role.title FROM role',(err,results)=> {
+
+
+        // loops over results and pushes each title into array
+        for (result of results) {
+
+            let roleTitle = result.title;
+            roleArray.push(roleTitle);
+ 
         };
+        // makes a mysql query to the database for current employees' names
+        db.query("SELECT employee.first_name, employee.last_name FROM employee",(err,results)=>{
 
-        // assigns new employee's first and last name to variables
-        const newEmployeeFName = data.first.toUpperCase().replaceAll(" ","");
-        const newEmployeeLName = data.last.toUpperCase().replaceAll(" ","");
+            // loops over results and pushes each employee full name into array
+            for (result of results) {
+                let fullName = `${result.first_name} ${result.last_name}`;
 
-        if (data.role.length === 0 || data.role.length > 1) {
-            viewErrMultiple();
-            return;
-        };
+                employeeArray.push(fullName);
+                
 
-        // mysql query to retrieve role id
-        db.query(`SELECT id FROM role WHERE title = "${data.role}"`,(err,results)=>{
+            }
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
-            };
+            // makes inquirer gather info on new employee
+            inquirer
+            .prompt([
+                {
+                    type: "input",
+                    name: "first",
+                    message: "Please enter the new employee's first name:"
+                },
+                {
+                    type: "input",
+                    name: "last",
+                    message: "Please enter the new employee's last name:"
+                },
+                {
+                    type: "checkbox",
+                    name: "role",
+                    message: "Please select the new employee's job title:",
+                    choices: roleArray
+                },
+                {
+                    type: "checkbox",
+                    name: "manager",
+                    message: "Please select the new employe's manager. If none, press enter to proceed:",
+                    choices: employeeArray
+                }
+            ])
+            .then((data)=>{
 
-            if (!err && data.manager.length > 1) {
-                viewErrMultiple();
-                return;
-            };
+                // if user enters nothing for first or last name
+                if (data.first.trim()==="" || data.last.trim()==="") {
+                    viewNullErr();
+                    return;
+                };
 
-            if (!err && data.manager.length !==0) {
+                // assigns new employee's first and last name to variables
+                const newEmployeeFName = data.first.toUpperCase().replaceAll(" ","");
+                const newEmployeeLName = data.last.toUpperCase().replaceAll(" ","");
 
-                // retrieves role id from inquirer data
-                const newEmployeeRoleId = results[0].id;
+                if (data.role.length === 0 || data.role.length > 1) {
+                    viewErrMultiple();
+                    return;
+                };
 
-                // mysql query to retrieve manager's employee id
-                db.query(`SELECT id FROM employee WHERE first_name = "${data.manager[0].split(" ")[0]}" AND last_name = "${data.manager[0].split(" ")[1]}"`,(err,results)=>{
-        
+                // mysql query to retrieve role id
+                db.query(`SELECT id FROM role WHERE title = "${data.role}"`,(err,results)=>{
+
                     // catches and displays error and takes user back to main menu
                     if (err) {
                         console.log(err);
                         next();
                     };
 
-                    if (!err) {
-                        const newEmployeeManagerId = results[0].id;
+                    if (!err && data.manager.length > 1) {
+                        viewErrMultiple();
+                        return;
+                    };
+
+                    if (!err && data.manager.length !==0) {
+
+                        // retrieves role id from inquirer data
+                        const newEmployeeRoleId = results[0].id;
+
+                        // mysql query to retrieve manager's employee id
+                        db.query(`SELECT id FROM employee WHERE first_name = "${data.manager[0].split(" ")[0]}" AND last_name = "${data.manager[0].split(" ")[1]}"`,(err,results)=>{
+                
+                            // catches and displays error and takes user back to main menu
+                            if (err) {
+                                console.log(err);
+                                next();
+                            };
+
+                            if (!err) {
+                                const newEmployeeManagerId = results[0].id;
+
+                                // mysql query to add new employee
+                                db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES ("${newEmployeeFName}","${newEmployeeLName}",${newEmployeeRoleId},${newEmployeeManagerId});`,(err,results)=>{
+                                    
+                                    // catches and displays error and takes user back to main menu
+                                    if (err) {
+                                        console.log(err);
+                                        next();
+                                    };
+
+                                    if (!err) {
+                                        // alerts user the new employee has been added
+                                        console.log("\nNew Employee Added!\n");
+                                        // takes user back to main menu
+                                        next();
+                                    };
+                                })
+                            };
+
+                        });
+                    };
+
+                    // if no manager is selected
+                    if (!err && data.manager.length === 0) {
+
+                        // retrieves role id from inquirer data
+                        const newEmployeeRoleId = results[0].id;
 
                         // mysql query to add new employee
-                        db.query(`INSERT INTO employee (first_name,last_name,role_id,manager_id) VALUES ("${newEmployeeFName}","${newEmployeeLName}",${newEmployeeRoleId},${newEmployeeManagerId});`,(err,results)=>{
-                            
+                        db.query(`INSERT INTO employee (first_name,last_name,role_id) VALUES ("${newEmployeeFName}","${newEmployeeLName}",${newEmployeeRoleId});`,(err,results)=>{
+                                    
                             // catches and displays error and takes user back to main menu
                             if (err) {
                                 console.log(err);
@@ -473,37 +550,16 @@ function addEmployee() {
                                 next();
                             };
                         })
-                    };
-
+                    }
                 });
-            };
 
-            // if no manager is selected
-            if (!err && data.manager.length === 0) {
+            })
 
-                // retrieves role id from inquirer data
-                const newEmployeeRoleId = results[0].id;
-
-                // mysql query to add new employee
-                db.query(`INSERT INTO employee (first_name,last_name,role_id) VALUES ("${newEmployeeFName}","${newEmployeeLName}",${newEmployeeRoleId});`,(err,results)=>{
-                            
-                    // catches and displays error and takes user back to main menu
-                    if (err) {
-                        console.log(err);
-                        next();
-                    };
-
-                    if (!err) {
-                        // alerts user the new employee has been added
-                        console.log("\nNew Employee Added!\n");
-                        // takes user back to main menu
-                        next();
-                    };
-                })
-            }
-        });
+        })
 
     })
+
+    
 };
 
 // function to delete a department
@@ -632,7 +688,6 @@ function deleteRole() {
         })
     })
 
-    
 };
 
 // function to delete an employee
@@ -650,7 +705,8 @@ function deleteEmployee() {
             employeeArray.push(fullName);
             
 
-        }
+        };
+
         // makes inquirer ask which employee to delete
         inquirer
         .prompt([
@@ -699,120 +755,152 @@ function deleteEmployee() {
 // function to update an employee role
 function updateRole() {
 
-    // makes inquirer gather info on employee and role to be upated
-    inquirer
-    .prompt(questions.uDRole)
-    .then((data)=>{ 
+    const employeeArray = [];
 
-        // if user selects more than one employee or role
-        if (data.name.length !== 1 || data.role.length !== 1) {
-            viewErrMultiple();
-            return;
+    const roleArray = [];
+    
+    // makes a mysql query to the database for current employees' names
+    db.query("SELECT employee.first_name, employee.last_name FROM employee",(err,results)=>{
+
+        // loops over results and pushes each employee full name into array
+        for (result of results) {
+            let fullName = `${result.first_name} ${result.last_name}`;
+
+            employeeArray.push(fullName);
+            
+
         };
 
-        // assigns employee and updated role to variables
-        const employeeFName = data.name[0].split(" ")[0];
-        const employeeLName = data.name[0].split(" ")[1];
-        const updatedRole = data.role[0];
-        
-        // mysql query to locate role id 
-        db.query(`SELECT id FROM role WHERE title = "${updatedRole}"`,(err,results)=>{
+        // makes a mysql query to the database for all current role titles
+        db.query('SELECT role.title FROM role',(err,results)=> {
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+
+            // loops over results and pushes each title into array
+            for (result of results) {
+
+                let roleTitle = result.title;
+                roleArray.push(roleTitle);
+
             };
 
-            if (!err) {
+            // makes inquirer gather info on employee and role to be upated
+            inquirer
+            .prompt([
+                {
+                    type: "checkbox",
+                    name: "name",
+                    message: "Please select the employee for whom you'd like to update role:",
+                    choices: employeeArray
+                },
+                {
+                    type: "checkbox",
+                    name: "role",
+                    message: "Please select new role for the selected employee:",
+                    choices: roleArray
+                }
+            ])
+            .then((data)=>{ 
 
-                // assigns role id to variable
-                const newRoleId = results[0].id;
+                // if user selects more than one employee or role
+                if (data.name.length !== 1 || data.role.length !== 1) {
+                    viewErrMultiple();
+                    return;
+                };
 
-                // mysql query to update role of selected employee
-                db.query(`UPDATE employee SET role_id = ${newRoleId} WHERE first_name = "${employeeFName}" AND last_name = "${employeeLName}";`,(err,results)=>{
+                // assigns employee and updated role to variables
+                const employeeFName = data.name[0].split(" ")[0];
+                const employeeLName = data.name[0].split(" ")[1];
+                const updatedRole = data.role[0];
+                
+                // mysql query to locate role id 
+                db.query(`SELECT id FROM role WHERE title = "${updatedRole}"`,(err,results)=>{
 
-                    // catches and displays error and takes use back to main menu
+                    // catches and displays error and takes user back to main menu
                     if (err) {
                         console.log(err);
-                        return;
+                        next();
                     };
 
                     if (!err) {
-                        // alerts user employee role has been updated
-                        console.log("\nEmployee Role Updated!\n");
-                        // takes user back to main menu
-                        next();
+
+                        // assigns role id to variable
+                        const newRoleId = results[0].id;
+
+                        // mysql query to update role of selected employee
+                        db.query(`UPDATE employee SET role_id = ${newRoleId} WHERE first_name = "${employeeFName}" AND last_name = "${employeeLName}";`,(err,results)=>{
+
+                            // catches and displays error and takes use back to main menu
+                            if (err) {
+                                console.log(err);
+                                return;
+                            };
+
+                            if (!err) {
+                                // alerts user employee role has been updated
+                                console.log("\nEmployee Role Updated!\n");
+                                // takes user back to main menu
+                                next();
+                            };
+                        })
                     };
+
                 })
-            };
+
+            })
 
         })
-
     })
+    
 };
 
 // function to update an employee's manager
 function updateManager() {
 
-    // makes inquirer gather employee and new manager info
-    inquirer
-    .prompt(questions.uDManager)
-    .then((data)=>{
+    const employeeArray = [];
+    
+    // makes a mysql query to the database for current employees' names
+    db.query("SELECT employee.first_name, employee.last_name FROM employee",(err,results)=>{
 
-        // if user selects more than one employee or manager
-        if (data.name.length !== 1 || data.manager.length >1) {
-            viewErrMultiple();
-            return;
-        };
+        // loops over results and pushes each employee full name into array
+        for (result of results) {
+            let fullName = `${result.first_name} ${result.last_name}`;
 
-        if (data.manager.length === 0) {
-
-            const emFName = data.name[0].split(" ")[0];
-            const emLName = data.name[0].split(" ")[1];
-
-            // mysql query to update employee manager
-            db.query(`UPDATE employee SET manager_id = NULL WHERE first_name = "${emFName}" AND last_name = "${emLName}"`,(err,results)=>{
-
-                // catches and displays error and takes user back to main menu
-                if (err) {
-                    console.log(err);
-                    next();
-                };
-
-                if (!err) {
-                    // alerts user employee manager has been updated
-                    console.log("\n Employee Manager Updated!\n");
-                    // takes user back to main menu
-                    next();
-                    
-                };
-            })
-
-            return;
-        };
-
-        // assigns employee and mananger name info to variables
-        const emFName = data.name[0].split(" ")[0];
-        const emLName = data.name[0].split(" ")[1];
-        const mFName = data.manager[0].split(" ")[0];
-        const mLName = data.manager[0].split(" ")[1];
-
-        // mysql query to locate manager's employee id
-        db.query(`SELECT id FROM employee WHERE first_name = "${mFName}" AND last_name = "${mLName}"`,(err,results)=>{
+            employeeArray.push(fullName);
             
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+
+        };
+
+        // makes inquirer gather employee and new manager info
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "name",
+                message: "Please select the employee whose manager you'd like to update:",
+                choices: employeeArray
+            },
+            {
+                type: "checkbox",
+                name: "manager",
+                message: "Please assign the selected employee with the new manager. To set manager as none, press enter:",
+                choices: employeeArray
+            }
+        ])
+        .then((data)=>{
+
+            // if user selects more than one employee or manager
+            if (data.name.length !== 1 || data.manager.length >1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // assigns manager id to variable
-                const mId = results[0].id;
+            if (data.manager.length === 0) {
+
+                const emFName = data.name[0].split(" ")[0];
+                const emLName = data.name[0].split(" ")[1];
 
                 // mysql query to update employee manager
-                db.query(`UPDATE employee SET manager_id = ${mId} WHERE first_name = "${emFName}" AND last_name = "${emLName}"`,(err,results)=>{
+                db.query(`UPDATE employee SET manager_id = NULL WHERE first_name = "${emFName}" AND last_name = "${emLName}"`,(err,results)=>{
 
                     // catches and displays error and takes user back to main menu
                     if (err) {
@@ -825,12 +913,55 @@ function updateManager() {
                         console.log("\n Employee Manager Updated!\n");
                         // takes user back to main menu
                         next();
+                        
                     };
                 })
+
+                return;
             };
+
+            // assigns employee and mananger name info to variables
+            const emFName = data.name[0].split(" ")[0];
+            const emLName = data.name[0].split(" ")[1];
+            const mFName = data.manager[0].split(" ")[0];
+            const mLName = data.manager[0].split(" ")[1];
+
+            // mysql query to locate manager's employee id
+            db.query(`SELECT id FROM employee WHERE first_name = "${mFName}" AND last_name = "${mLName}"`,(err,results)=>{
+                
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
+                    next();
+                };
+
+                if (!err) {
+                    // assigns manager id to variable
+                    const mId = results[0].id;
+
+                    // mysql query to update employee manager
+                    db.query(`UPDATE employee SET manager_id = ${mId} WHERE first_name = "${emFName}" AND last_name = "${emLName}"`,(err,results)=>{
+
+                        // catches and displays error and takes user back to main menu
+                        if (err) {
+                            console.log(err);
+                            next();
+                        };
+
+                        if (!err) {
+                            // alerts user employee manager has been updated
+                            console.log("\n Employee Manager Updated!\n");
+                            // takes user back to main menu
+                            next();
+                        };
+                    })
+                };
+            })
+
         })
 
     })
+
 };
 
 // function to view employees by manager
@@ -847,8 +978,7 @@ function viewEmployeeByManager() {
 
             employeeArray.push(fullName);
             
-
-        }
+        };
 
         // makes inquirer ask which manager the user wants to view the employees of
         inquirer
@@ -930,7 +1060,7 @@ function viewRolesByDepartment() {
             let departmentName = result.name;
             departmentArray.push(departmentName);
 
-        }
+        };
 
         // make inquirer ask which department the user wants to view roles of
         inquirer
@@ -981,7 +1111,6 @@ function viewRolesByDepartment() {
 
             })
 
-
         })
     });
     
@@ -1003,7 +1132,7 @@ function viewEmployeesByDepartment() {
             let departmentName = result.name;
             departmentArray.push(departmentName);
 
-        }
+        };
 
         // makes inquirer ask which department the user wants to view employees of
         inquirer
@@ -1117,13 +1246,7 @@ function viewTotalBudget() {
 
 }; 
 
-
-
-/* TODO: fix missing data bug from:
-addEmployee (select role list missing data, select manager list missing data)
-updateRole (select employee list missing data, select new role list missing data)
-updateManager (select employee list missing data, select new manager list missing data)
-*/
+//TODO: clean up unnecessary parts in questions.js, data-retrieve.js => delete exports and imports 
 
 
 // exports query functions
