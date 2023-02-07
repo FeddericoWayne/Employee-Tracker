@@ -2,7 +2,7 @@
 
   ## <a id="Description">Description</a> 
 
-  This is a command line App that allows users to keep track of the employees of their company. It utilizes the inquirer package, dotenv package, and mysql2 package.
+  This is a command line App that allows users to keep track of the employees of their company. It utilizes the inquirer, mysql2, and dotenv packages.
 
   Upon initiation of App, users will be prompted to select an option to proceed with from the main menu.
 
@@ -25,6 +25,20 @@
   14. Update an employee's role
   15. Update an employee's manager 
   ```
+  Viewing all the departments displays all the company's departments.
+  Viewing all the roles displays all the company's roles.
+  Viewing all the employees displays all the company's employees' info, including first/last names, job titles, salaries, departments, and manager names. If an employee currently has no job title (as in the case of a job being deleted) or no manager, the job title or manager name fields will be left blank.
+  Viewing employees of a manager will make the app prompt the user to select a manager and then display all the employees that report to the selected manager.
+  Viewing all the roles in a department will make the app prompt the user to select a department and display all the roles within the selected department.
+  Viewing all the employees of a department will make the app prompt the user to select a department and display all the employees that work within the selected department.
+
+  When the user selects to add a new department, they will be prompted to enter the name of the new department. When the user selects to add a new role, they will be prompted to enter the title of the new role, as well as the salary of the new role, and to select a department the new role belongs to.
+  When the user selects to add a new employee, they will be prompted to enter the first and last name of the new employee, as well as to select a role for the new employee.
+
+  When the user selects to delete a department, a role, or an employee, they will be prompted to select a department, a role, or an employee to delete, and that data is removed from the database.
+
+  Updating an employee's role or manager will make the app prompt the user to select an employee first, and then select a new role or new manager for the employee. If the user presses enter when selecting a new manager to skip the selection, the employee's new manager will be set to NULL and displayed as blank.
+
   If at any point the user selects more than one option, skips entering necessary info (with the exception of updating an employee's manager to NULL), or enters a non-number for a new role's salary by mistake, they will be alerted accordingly and taken back to the main menu to start over. Upon success completion of a task, the App takes the users back to the main menu so they can select what they'd like to do next. Finally, there is an "Exit" option if they wish to quit the App.
 
   Click <a href="" target="_blank">HERE</a> for the video that demonstrates the functionality of this App. 
