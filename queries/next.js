@@ -1,27 +1,21 @@
-// imports inquirer package
-const inquirer = require('inquirer');
-// imports banner module
-const banner = require('./util/ascii-signature');
+// imports inquirer for prompts
+const inquirer= require('inquirer');
 // imports view functions module
-const view = require('./queries/view');
-// imports add function module
-const add = require('./queries/add');
-// imports delete function module
-const deleteData = require('./queries/delete');
-// imports update function module
-const update = require('./queries/update');
+const view = require('./view');
+// imports add functions module
+const add = require('./add');
+// imports delete functions module
+const deleteData = require('./delete');
+// imports update functions module
+const update = require('./update');
 // imports error functions
-const error = require('./queries/error');
+const error = require('./error');
 
+// function to handle recursive main menu inquirer prompt
+function menu() {
 
-
-// makes inquirer start prompt sequence
-function startApp() {
-
-    // displays app banner
-    banner();
-
-    inquirer.prompt([
+    inquirer
+    .prompt([
         {
             type: "checkbox",
             name: "menu",
@@ -29,120 +23,101 @@ function startApp() {
             choices: ["View All Departments","View All Roles","View All Employees","View Employees by Manager","View Employees by Department","View Roles by Department","View Total Utilized Budget by Department","Add a Department","Add a Role","Add an Employee","Update an Employee Role","Update Employee Manager","Delete a Department","Delete a Role","Delete an Employee","Exit"]
         }
     ])
-    .then((data) => {
+    .then((data)=>{
 
-        // if user selects more than one option
         if (data.menu.length !== 1) {
+            // function that alerts user to select only one option
             error.viewErrMultiple();
+            
         }
-
-        // if user selects to view all departments
+ 
         if (data.menu[0] === "View All Departments" && data.menu.length === 1) {
-            // mysql query to show all departments
+            // function that displays all departments
             view.viewDepartments();
 
         };
-        // if user selects to view all roles
+
         if (data.menu[0] === "View All Roles" && data.menu.length === 1) {
-            // mysql query to show all roles
+            // function that displays all roles 
             view.viewRoles();
 
         };
-        // if user selects to view all employees
-        if (data.menu[0] === "View All Employees" && data.menu.length === 1) {
-            // mysql query to show all employees
-            view.viewEmployees();
 
+        if (data.menu[0] === "View All Employees" && data.menu.length === 1) {
+            // function that displays all employees
+            view.viewEmployees();
         };
-        // if user selects to add a department
+
         if (data.menu[0] === "Add a Department" && data.menu.length === 1) {
-            // mysql query to add the department
+            // function that adds new department to database
             add.addDepartment();
-            
         };
-        // if user selects to add a role
+
         if (data.menu[0] === "Add a Role" && data.menu.length === 1) {
-            // mysql query to add the role
+            // function that adds new role to database
             add.addRole();
-        };
-        // if user selects to add an employee
+        }
+
         if (data.menu[0] === "Add an Employee" && data.menu.length === 1) {
-            // mysql query to add the employee
+            // function that adds a new employee to the database
             add.addEmployee();
         };
 
-        // if user selects to delete a department
         if (data.menu[0] === "Delete a Department" && data.menu.length === 1) {
-            // mysql query to delete the department
+            // functio to delete department
             deleteData.deleteDepartment();
         };
 
-        // if user selects to delete a role
         if (data.menu[0] === "Delete a Role" && data.menu.length === 1) {
-            //mysql query to delete the role
+            // function to delete a role
             deleteData.deleteRole();
         };
 
-        // if user selects to delete an employee
         if (data.menu[0] === "Delete an Employee" && data.menu.length === 1) {
-            // mysql query to delete the employee
+            //function to delete an employee
             deleteData.deleteEmployee();
         };
 
-        // if user selects to update an employee's role
         if (data.menu[0] === "Update an Employee Role" && data.menu.length === 1) {
-            // mysql query to update employee role
+            // function that updates an employee's role
             update.updateRole();
         };
 
-        // if user selects to update an employee's manager 
-        if (data.menu[0] === "Update Employee Manager" && data.menu.length === 1) {
-            // mysql query to update manager
+        if (data.menu[0] === "Update Employee Manager" && data.menu.length === 1)  {
+            // function that updates an employee's manager
             update.updateManager();
         };
 
-        // if user selects to view employees by manager
         if (data.menu[0] === "View Employees by Manager" && data.menu.length === 1) {
-            // mysql query to view employees by manager
+            // function that allows user to view subordinate employees of specific managers
             view.viewEmployeeByManager();
         };
 
-        // if user selects to view roles by department
         if (data.menu[0] === "View Roles by Department" && data.menu.length === 1) {
-            // mysql query to view roles by department
+            // function that allows user to view all roles in a specified department
             view.viewRolesByDepartment();
-        }
+        };
 
-        // if user selects to view employees b y department
         if (data.menu[0] === "View Employees by Department" && data.menu.length === 1) {
-            // mysql query to view employees by department
+            // function that allows user to view all employees inside a specified departrment
             view.viewEmployeesByDepartment();
         };
 
-        // if user selects to view total utilized budget by department
         if (data.menu[0] === "View Total Utilized Budget by Department" && data.menu.length === 1) {
-            // mysql query to view total utilized budget by department
+            // function that allows user to view total utilized budget of a specified department
             view.viewTotalBudget();
         };
 
-        // if user selects to exit
         if (data.menu[0] === "Exit" && data.menu.length === 1) {
-            // Exits node shell
+            // exits the app
             process.exit();
         };
 
-    }
-
-    )
-
-
-}
 
 
 
-// calls function to initiate app
-startApp()
+    })
+};
 
 
-
-
+exports.menu = menu;
