@@ -2,7 +2,7 @@
 
   ## <a id="Description">Description</a> 
 
-  This is a command line App that allows users to keep track of the employees of their company.
+  This is a command line App that allows users to keep track of the employees of their company. It utilizes the inquirer package, dotenv package, and mysql2 package.
 
   Upon initiation of App, users will be prompted to select an option to proceed with from the main menu.
 
