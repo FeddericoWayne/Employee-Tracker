@@ -283,88 +283,123 @@ function addDepartment() {
 // function to add a role
 function addRole() {
 
-    // makes inquirer gather info on new role
-    inquirer
-    .prompt(questions.newRole)
-    .then((data)=>{
+    const departmentArray = [];
 
-        // if user enters a non-number for salary
-        if (isNaN(data.salary)) {
-            console.log("\nPlease enter a number for salary!\n");
-            next();
-            return;
-        };
+    // makes a mysql query to the database for current roles
+    db.query("SELECT name FROM department",(err,results)=>{
 
 
-        // if user selects more than one department for the new role
-        if (data.department.length === 0 || data.department.length >1) {
-            viewErrMultiple();
-            return;
-        };
-
-        // if user enters nothing for new role name
-        if (data.title.trim() === "" || data.salary.trim() === "") {
-            viewNullErr();
-            return;
-        };
-
-        // makes mysql query with new role name
-        const newRoleName = data.title.toLowerCase();
-        const newRoleSalary = data.salary;
-        const newRoleDepartment = data.department[0].toLowerCase();
-
-        // mysql query to retrieve existing roles in each department
-        db.query("SELECT role.title AS role, department.name AS department FROM role JOIN department ON role.department_id = department.id;",(err,results)=>{
+        // loops over results and pushes each title to array
+        for (result of results) {
             
-            // eliminates duplicate entries
-            for (result of results) {
+            // loops over results and pushes department names into array
+            let departmentName = result.name;
+            departmentArray.push(departmentName);
 
-                // loops through results for matching roles in each department
-                if (newRoleName === result.role && newRoleDepartment === result.department) {
+        }
 
-                    // if matched for both role and department
-                    viewDuplicateErr();
-                    return;
-                };
+        // makes inquirer gather info on new role
+        inquirer
+        .prompt([
+            {
+                type: "input",
+                name: "title",
+                message: "Please enter the title of the new role:"
+            },
+            {
+                type: "input",
+                name: "salary",
+                message: "Please enter the salary of the new role:"
+            },
+            {
+                type: "checkbox",
+                name: "department",
+                message: "Please select the department of the new role:",
+                choices: departmentArray
+            }
+        
+        ])
+        .then((data)=>{
 
+            // if user enters a non-number for salary
+            if (isNaN(data.salary)) {
+                console.log("\nPlease enter a number for salary!\n");
+                next();
+                return;
             };
 
-            db.query(`SELECT id FROM department WHERE name = "${data.department}"`,(err,results)=>{
 
-                // catches and displays error and takes use back to main menu
-                if (err) {
-                    console.log(err);
-                    next();
+            // if user selects more than one department for the new role
+            if (data.department.length === 0 || data.department.length >1) {
+                viewErrMultiple();
+                return;
+            };
+
+            // if user enters nothing for new role name
+            if (data.title.trim() === "" || data.salary.trim() === "") {
+                viewNullErr();
+                return;
+            };
+
+            // makes mysql query with new role name
+            const newRoleName = data.title.toLowerCase();
+            const newRoleSalary = data.salary;
+            const newRoleDepartment = data.department[0].toLowerCase();
+
+            // mysql query to retrieve existing roles in each department
+            db.query("SELECT role.title AS role, department.name AS department FROM role JOIN department ON role.department_id = department.id;",(err,results)=>{
+                
+                // eliminates duplicate entries
+                for (result of results) {
+
+                    // loops through results for matching roles in each department
+                    if (newRoleName === result.role && newRoleDepartment === result.department) {
+
+                        // if matched for both role and department
+                        viewDuplicateErr();
+                        return;
+                    };
+
                 };
-    
-                if (!err) {
-                    // assigns department id number to variable for query
-                    const departmentId = results[0].id
-                    // mysql query to insert new role
-                    db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRoleName}",${newRoleSalary},"${departmentId}")`);
-    
-                        // catches and displays error and takes user back to main menu
-                        if (err) {
-                            console.log(err);
-                            next();
-                        };
-    
-                        if (!err) {
-                        // alerts user the new role has been added
-                        console.log("\nNew Role Added!\n");
-                        // takes user back to main menu
+
+                db.query(`SELECT id FROM department WHERE name = "${data.department}"`,(err,results)=>{
+
+                    // catches and displays error and takes use back to main menu
+                    if (err) {
+                        console.log(err);
                         next();
-                        };
-                };
-    
-            });
+                    };
+        
+                    if (!err) {
+                        // assigns department id number to variable for query
+                        const departmentId = results[0].id
+                        // mysql query to insert new role
+                        db.query(`INSERT INTO role (title, salary, department_id) VALUES ("${newRoleName}",${newRoleSalary},"${departmentId}")`);
+        
+                            // catches and displays error and takes user back to main menu
+                            if (err) {
+                                console.log(err);
+                                next();
+                            };
+        
+                            if (!err) {
+                            // alerts user the new role has been added
+                            console.log("\nNew Role Added!\n");
+                            // takes user back to main menu
+                            next();
+                            };
+                    };
+        
+                });
 
 
+            })
+            
+
+            
         })
-        
-
-        
-    })
+    });
+    
 
 };
 
@@ -801,107 +836,155 @@ function updateManager() {
 // function to view employees by manager
 function viewEmployeeByManager() {
     
-    // makes inquirer ask which manager the user wants to view the employees of
-    inquirer
-    .prompt(questions.viewByManager)
-    .then((data)=>{
+    const employeeArray = [];
+    
+    // makes a mysql query to the database for current employees' names
+    db.query("SELECT employee.first_name, employee.last_name FROM employee",(err,results)=>{
 
-        // if user selects more than one manager
-        if (data.manager.length !==1) {
-            viewErrMultiple();
-            return;
-        };
+        // loops over results and pushes each employee full name into array
+        for (result of results) {
+            let fullName = `${result.first_name} ${result.last_name}`;
 
-        // assigns manager name info to variable
-        const managerFullName = data.manager[0];
-        const managerFName = data.manager[0].split(" ")[0];
-        const managerLName = data.manager[0].split(" ")[1];
+            employeeArray.push(fullName);
+            
 
-        // mysql query to locate manager
-        db.query(`SELECT id FROM employee WHERE first_name = "${managerFName}" AND last_name = "${managerLName}"`,(err,results)=>{
+        }
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+        // makes inquirer ask which manager the user wants to view the employees of
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "manager",
+                message: "Please select the manager whose subordinate employees you'd like to view:",
+                choices: employeeArray
+            }
+        ])
+        .then((data)=>{
+
+            // if user selects more than one manager
+            if (data.manager.length !==1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // assigns manager employee id to variable
-                const managerId = results[0].id;
+            // assigns manager name info to variable
+            const managerFullName = data.manager[0];
+            const managerFName = data.manager[0].split(" ")[0];
+            const managerLName = data.manager[0].split(" ")[1];
 
-                // mysql query to display selected manager's subordinates
-                //'SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id;'
-                db.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE employee.manager_id = ${managerId} ORDER BY id;`,(err,results)=>{
+            // mysql query to locate manager
+            db.query(`SELECT id FROM employee WHERE first_name = "${managerFName}" AND last_name = "${managerLName}"`,(err,results)=>{
 
-                    // catches and displays error and takes user back to main menu
-                    if (err) {
-                        console.log(err);
-                        next();
-                    };
-
-                    if (!err) {
-                    // header for table
-                    console.log(`\nViewing Subordinate Employees of Manager ${managerFullName}:\n`);
-                    // displays resulting table
-                    console.table(results);
-                    // takes user back to main menu
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
                     next();
-                    };
-                })
-            };
-        })
+                };
 
-    })
+                if (!err) {
+                    // assigns manager employee id to variable
+                    const managerId = results[0].id;
+
+                    // mysql query to display selected manager's subordinates
+                    //'SELECT e.id, e.first_name, e.last_name, role.title AS job_title, department.name AS department, role.salary AS salary, m.first_name AS manager_first_name, m.last_name AS manager_last_name FROM employee e JOIN employee m ON e.manager_id = m.id JOIN role ON e.role_id = role.id JOIN department on role.department_id = department.id;'
+                    db.query(`SELECT employee.id, employee.first_name, employee.last_name, role.title AS job_title, department.name AS department, role.salary AS salary FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id WHERE employee.manager_id = ${managerId} ORDER BY id;`,(err,results)=>{
+
+                        // catches and displays error and takes user back to main menu
+                        if (err) {
+                            console.log(err);
+                            next();
+                        };
+
+                        if (!err) {
+                        // header for table
+                        console.log(`\nViewing Subordinate Employees of Manager ${managerFullName}:\n`);
+                        // displays resulting table
+                        console.table(results);
+                        // takes user back to main menu
+                        next();
+                        };
+                    })
+                };
+            })
+
+        })
+    });
+
+    
 };
 
 // function to view roles by department
 function viewRolesByDepartment() {
 
-    // make inquirer ask which department the user wants to view roles of
-    inquirer
-    .prompt(questions.rolesByDepartment) 
-    .then((data)=>{
+    const departmentArray = [];
 
-        // if user selects more than one department
-        if (data.department.length !== 1) {
-            viewErrMultiple();
-            return;
-        };
+    // makes a mysql query to the database for current roles
+    db.query("SELECT name FROM department",(err,results)=>{
 
-        // assigns selected department to variable
-        const selectedDep = data.department[0];
 
-        // mysql query to locate department id
-        db.query(`SELECT id FROM department WHERE name = "${selectedDep}"`,(err,results)=>{
+        // loops over results and pushes each title to array
+        for (result of results) {
+            
+            // loops over results and pushes department names into array
+            let departmentName = result.name;
+            departmentArray.push(departmentName);
 
-            // catches and displays error and takes user back to main menu
-            if (err) {
-                console.log(err);
-                next();
+        }
+
+        // make inquirer ask which department the user wants to view roles of
+        inquirer
+        .prompt([
+            {
+                type: "checkbox",
+                name: "department",
+                message: "Please select the department whose roles you'd like to view:",
+                choices: departmentArray
+            }
+        ]) 
+        .then((data)=>{
+
+            // if user selects more than one department
+            if (data.department.length !== 1) {
+                viewErrMultiple();
+                return;
             };
 
-            if (!err) {
-                // assigns department id to variable
-                const selectedDepId = results[0].id;
+            // assigns selected department to variable
+            const selectedDep = data.department[0];
 
-                // mysql query to display all roles within selected department
-                db.query(`SELECT id AS role_id, title AS job_title, salary FROM role WHERE department_id = ${selectedDepId} ORDER BY id`,(err,results)=>{
+            // mysql query to locate department id
+            db.query(`SELECT id FROM department WHERE name = "${selectedDep}"`,(err,results)=>{
 
-                    // header for table
-                    console.log(`\nViewing All Roles from the ${selectedDep} Department:\n`);
-                    // displays table
-                    console.table(results);
-                    // takes user back to main menu
+                // catches and displays error and takes user back to main menu
+                if (err) {
+                    console.log(err);
                     next();
-                })
+                };
 
-            };
+                if (!err) {
+                    // assigns department id to variable
+                    const selectedDepId = results[0].id;
+
+                    // mysql query to display all roles within selected department
+                    db.query(`SELECT id AS role_id, title AS job_title, salary FROM role WHERE department_id = ${selectedDepId} ORDER BY id`,(err,results)=>{
+
+                        // header for table
+                        console.log(`\nViewing All Roles from the ${selectedDep} Department:\n`);
+                        // displays table
+                        console.table(results);
+                        // takes user back to main menu
+                        next();
+                    })
+
+                };
+
+            })
+
 
         })
-
-
-    })
+    });
+    
 };
 
 // function to display employees by department
@@ -1037,10 +1120,6 @@ function viewTotalBudget() {
 
 
 /* TODO: fix missing data bug from:
-addRole (select department list missing data)
-viewEmployeeByManager (select manager list missing data)
-viewEmployeesByDepartment (select department list missing data)
-viewRolesByDepartment (select department list missing data)
 addEmployee (select role list missing data, select manager list missing data)
 updateRole (select employee list missing data, select new role list missing data)
 updateManager (select employee list missing data, select new manager list missing data)
